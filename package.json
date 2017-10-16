@@ -1,0 +1,18 @@
+{
+  "name": "node-red-contrib-yaml-storage",
+  "version": "1.0.0",
+  "description": "A Node-RED storage plugin that store flows as YAML for readability",
+  "dependencies": {
+    "js-yaml": "3.8.4"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/natcl/node-red-contrib-yaml-storage.git"
+  },
+  "keywords": ["node-red", "yaml", "storage"],
+  "node-red": {
+    "nodes": {
+      "yamlstorage": "localfilesystem_yaml.js"
+    }
+  }
+}
