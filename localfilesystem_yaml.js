@@ -297,9 +297,9 @@ var localfilesystem_yaml = {
 
         if (settings.flowFilePretty) {
             flowData = JSON.stringify(flows,null,4);
-            flowData = yaml.dump(flows);
+            flowData = yaml.dump(flows, {'lineWidth': 160});
         } else {
-            flowData = yaml.dump(flows);
+            flowData = yaml.dump(flows, {'lineWidth': 160});
         }
         return writeFile(flowsFullPath, flowData);
     },
