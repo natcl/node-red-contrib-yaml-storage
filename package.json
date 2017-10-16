@@ -2,6 +2,7 @@
   "name": "node-red-contrib-yaml-storage",
   "version": "1.0.0",
   "description": "A Node-RED storage plugin that store flows as YAML for readability",
+  "main": "localfilesystem_yaml.js",
   "dependencies": {
     "js-yaml": "3.8.4",
     "when": "3.7.8",

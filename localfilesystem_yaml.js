@@ -19,9 +19,10 @@ var when = require('when');
 var nodeFn = require('when/node/function');
 var keys = require('when/keys');
 var fspath = require("path");
+var yaml = require('js-yaml');
 var mkdirp = fs.mkdirs;
 
-var log = require("../log");
+var log = require("../node-red/red/runtime/log");
 
 var promiseDir = nodeFn.lift(mkdirp);
 
@@ -126,9 +127,13 @@ function writeFile(path,content) {
 
 function parseJSON(data) {
     if (data.charCodeAt(0) === 0xFEFF) {
-        data = data.slice(1)
+        data = data.slice(1);
     }
     return JSON.parse(data);
+}
+
+function parseYAML(data) {
+    return yaml.load(data);
 }
 
 function readFile(path,backupPath,emptyResponse,type) {
@@ -162,7 +167,7 @@ function readFile(path,backupPath,emptyResponse,type) {
                     }
                 }
                 try {
-                    return resolve(parseJSON(data));
+                    return resolve(parseYAML(data));
                 } catch(parseErr) {
                     log.warn(log._("storage.localfilesystem.invalid",{type:type}));
                     return resolve(emptyResponse);
@@ -177,7 +182,7 @@ function readFile(path,backupPath,emptyResponse,type) {
     });
 }
 
-var localfilesystem = {
+var localfilesystem_yaml = {
     init: function(_settings) {
         settings = _settings;
 
@@ -226,7 +231,7 @@ var localfilesystem = {
             }
 
         } else {
-            flowsFile = 'flows_'+require('os').hostname()+'.json';
+            flowsFile = 'flows_'+require('os').hostname()+'.yaml';
             flowsFullPath = fspath.join(settings.userDir,flowsFile);
         }
         var ffExt = fspath.extname(flowsFullPath);
@@ -264,7 +269,7 @@ var localfilesystem = {
                     return writeFile(packageFile,JSON.stringify(defaultPackage,"",4));
                 }
                 return true;
-            }
+            };
         }
         return when.all(promises).then(packagePromise);
     },
@@ -292,8 +297,9 @@ var localfilesystem = {
 
         if (settings.flowFilePretty) {
             flowData = JSON.stringify(flows,null,4);
+            flowData = yaml.dump(flows);
         } else {
-            flowData = JSON.stringify(flows);
+            flowData = yaml.dump(flows);
         }
         return writeFile(flowsFullPath, flowData);
     },
@@ -331,8 +337,8 @@ var localfilesystem = {
                     }
                 }
                 return resolve({});
-            })
-        })
+            });
+        });
     },
     saveSettings: function(newSettings) {
         if (settings.readOnly) {
@@ -351,7 +357,7 @@ var localfilesystem = {
                     }
                 }
                 resolve({});
-            })
+            });
         });
     },
     saveSessions: function(sessions) {
@@ -407,7 +413,7 @@ var localfilesystem = {
             // else path was specified, but did not exist,
             // check for path.json as an alternative if flows
             if (type === "flows" && !/\.json$/.test(path)) {
-                return localfilesystem.getLibraryEntry(type,path+".json")
+                return localfilesystem_yaml.getLibraryEntry(type,path+".json")
                 .otherwise(function(e) {
                     throw err;
                 });
@@ -440,4 +446,4 @@ var localfilesystem = {
     }
 };
 
-module.exports = localfilesystem;
+module.exports = localfilesystem_yaml;
