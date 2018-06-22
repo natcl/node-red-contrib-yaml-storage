@@ -134,7 +134,7 @@ sudo npm install -g node-red-contrib-yaml-storage
 You will also need to modify your `settings.js` file and add the following:
 
 ```javascript
-storageModule: 'node-red-contrib-yaml-storage'
+storageModule: require('node-red-contrib-yaml-storage')
 ```
 
 To convert an existing flow to yaml, with the plugin installed and the storageModule configured, just rename your flow file with a `.yaml` extension instead of a `.json` extension.  After first deploy, the flow will be converted to YAML.
