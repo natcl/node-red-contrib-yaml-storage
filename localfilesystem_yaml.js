@@ -15,16 +15,16 @@
  **/
 
 var fs = require('fs-extra');
-var when = require('when');
 var nodeFn = require('when/node/function');
 var keys = require('when/keys');
 var fspath = require("path");
 var yaml = require('js-yaml');
 var mkdirp = fs.mkdirs;
+const util = require('util');
 
-var log = require("../node-red/red/runtime/log");
+// var log = require("../node-red/red/runtime/log");
 
-var promiseDir = nodeFn.lift(mkdirp);
+var promiseDir = util.promisify(mkdirp);
 
 var initialFlowLoadComplete = false;
 var settings;
@@ -112,7 +112,7 @@ function getFileBody(root,path) {
  * the write hits disk.
  */
 function writeFile(path,content) {
-    return when.promise(function(resolve,reject) {
+    return new Promise(function(resolve,reject) {
         var stream = fs.createWriteStream(path);
         stream.on('open',function(fd) {
             stream.end(content,'utf8',function() {
@@ -137,7 +137,7 @@ function parseYAML(data) {
 }
 
 function readFile(path,backupPath,emptyResponse,type) {
-    return when.promise(function(resolve) {
+    return new Promise(function(resolve) {
         fs.readFile(path,'utf8',function(err,data) {
             if (!err) {
                 if (data.length === 0) {
@@ -254,7 +254,7 @@ var localfilesystem_yaml = {
         globalSettingsFile = fspath.join(settings.userDir,".config.json");
 
         var packageFile = fspath.join(settings.userDir,"package.json");
-        var packagePromise = when.resolve();
+        var packagePromise = Promise.resolve();
         if (!settings.readOnly) {
             promises.push(promiseDir(libFlowsDir));
             packagePromise = function() {
@@ -271,21 +271,19 @@ var localfilesystem_yaml = {
                 return true;
             };
         }
-        return when.all(promises).then(packagePromise);
+        return Promise.all(promises).then(packagePromise);
     },
 
     getFlows: function() {
         if (!initialFlowLoadComplete) {
             initialFlowLoadComplete = true;
-            log.info(log._("storage.localfilesystem.user-dir",{path:settings.userDir}));
-            log.info(log._("storage.localfilesystem.flows-file",{path:flowsFullPath}));
         }
         return readFile(flowsFullPath,flowsFileBackup,[],'flow');
     },
 
     saveFlows: function(flows) {
         if (settings.readOnly) {
-            return when.resolve();
+            return Promise.resolve();
         }
 
         try {
@@ -309,7 +307,7 @@ var localfilesystem_yaml = {
 
     saveCredentials: function(credentials) {
         if (settings.readOnly) {
-            return when.resolve();
+            return Promise.resolve();
         }
 
         try {
@@ -326,13 +324,13 @@ var localfilesystem_yaml = {
     },
 
     getSettings: function() {
-        return when.promise(function(resolve,reject) {
+        return new Promise(function(resolve,reject) {
             fs.readFile(globalSettingsFile,'utf8',function(err,data) {
                 if (!err) {
                     try {
                         return resolve(parseJSON(data));
                     } catch(err2) {
-                        log.trace("Corrupted config detected - resetting");
+                        console.trace("Corrupted config detected - resetting");
                     }
                 }
                 return resolve({});
@@ -341,18 +339,18 @@ var localfilesystem_yaml = {
     },
     saveSettings: function(newSettings) {
         if (settings.readOnly) {
-            return when.resolve();
+            return Promise.resolve();
         }
         return writeFile(globalSettingsFile,JSON.stringify(newSettings,null,1));
     },
     getSessions: function() {
-        return when.promise(function(resolve,reject) {
+        return new Promise(function(resolve,reject) {
             fs.readFile(sessionsFile,'utf8',function(err,data){
                 if (!err) {
                     try {
                         return resolve(parseJSON(data));
                     } catch(err2) {
-                        log.trace("Corrupted sessions file - resetting");
+                        console.trace("Corrupted sessions file - resetting");
                     }
                 }
                 resolve({});
@@ -361,7 +359,7 @@ var localfilesystem_yaml = {
     },
     saveSessions: function(sessions) {
         if (settings.readOnly) {
-            return when.resolve();
+            return Promise.resolve();
         }
         return writeFile(sessionsFile,JSON.stringify(sessions));
     },
@@ -371,14 +369,15 @@ var localfilesystem_yaml = {
         var rootPath = fspath.join(libDir,type,path);
 
         // don't create the folder if it does not exist - we are only reading....
-        return nodeFn.call(fs.lstat, rootPath).then(function(stats) {
+
+        return util.promisify(fs.lstat).call(rootPath).then(function(stats) {
             if (stats.isFile()) {
                 return getFileBody(root,path);
             }
             if (path.substr(-1) == '/') {
                 path = path.substr(0,path.length-1);
             }
-            return nodeFn.call(fs.readdir, rootPath).then(function(fns) {
+            return util.promisify(fs.readdir).call(rootPath).then(function(fns) {
                 var dirs = [];
                 var files = [];
                 fns.sort().filter(function(fn) {
@@ -424,7 +423,7 @@ var localfilesystem_yaml = {
 
     saveLibraryEntry: function(type,path,meta,body) {
         if (settings.readOnly) {
-            return when.resolve();
+            return Promise.resolve();
         }
         if (type === "flows" && !path.endsWith(".json")) {
             path += ".json";
