@@ -141,7 +141,7 @@ function readFile(path,backupPath,emptyResponse,type) {
         fs.readFile(path,'utf8',function(err,data) {
             if (!err) {
                 if (data.length === 0) {
-                    log.warn(log._("storage.localfilesystem.empty",{type:type}));
+                    // console.warn(log._("storage.localfilesystem.empty",{type:type}));
                     try {
                         var backupStat = fs.statSync(backupPath);
                         if (backupStat.size === 0) {
@@ -149,11 +149,11 @@ function readFile(path,backupPath,emptyResponse,type) {
                             return resolve(emptyResponse);
                         }
                         // Empty flows, restore backup
-                        log.warn(log._("storage.localfilesystem.restore",{path:backupPath,type:type}));
+                        // log.warn(log._("storage.localfilesystem.restore",{path:backupPath,type:type}));
                         fs.copy(backupPath,path,function(backupCopyErr) {
                             if (backupCopyErr) {
                                 // Restore backup failed
-                                log.warn(log._("storage.localfilesystem.restore-fail",{message:backupCopyErr.toString(),type:type}));
+                                // log.warn(log._("storage.localfilesystem.restore-fail",{message:backupCopyErr.toString(),type:type}));
                                 resolve([]);
                             } else {
                                 // Loop back in to load the restored backup
@@ -169,12 +169,12 @@ function readFile(path,backupPath,emptyResponse,type) {
                 try {
                     return resolve(parseYAML(data));
                 } catch(parseErr) {
-                    log.warn(log._("storage.localfilesystem.invalid",{type:type}));
+                    // log.warn(log._("storage.localfilesystem.invalid",{type:type}));
                     return resolve(emptyResponse);
                 }
             } else {
                 if (type === 'flow') {
-                    log.info(log._("storage.localfilesystem.create",{type:type}));
+                    // log.info(log._("storage.localfilesystem.create",{type:type}));
                 }
                 resolve(emptyResponse);
             }
