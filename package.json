@@ -11,7 +11,11 @@
     "type": "git",
     "url": "https://github.com/sax1johno/node-red-contrib-yaml-storage.git"
   },
-  "keywords": ["node-red", "yaml", "storage"],
+  "keywords": [
+    "node-red",
+    "yaml",
+    "storage"
+  ],
   "node-red": {
     "nodes": {
       "yamlstorage": "localfilesystem_yaml.js"

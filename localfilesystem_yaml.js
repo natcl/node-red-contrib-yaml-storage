@@ -15,8 +15,8 @@
  **/
 
 var fs = require('fs-extra');
-var nodeFn = require('when/node/function');
-var keys = require('when/keys');
+// var nodeFn = require('when/node/function');
+// var keys = require('when/keys');
 var fspath = require("path");
 var yaml = require('js-yaml');
 var mkdirp = fs.mkdirs;
